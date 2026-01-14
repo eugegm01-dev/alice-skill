@@ -3,9 +3,13 @@ module github.com/eugegm01-dev/alice-skill
 go 1.25.4
 
 require (
-	github.com/go-resty/resty/v2 v2.17.0
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.27.0
+)
+
+require (
+	github.com/go-resty/resty/v2 v2.17.1
+	go.uber.org/mock v0.6.0
 )
 
 require (
