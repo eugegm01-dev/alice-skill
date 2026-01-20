@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/eugegm01-dev/alice-skill/internal/store"
-	"github.com/eugegm01-dev/alice-skill/internal/store/mock"
+	"github.com/bluegopher/alice-skill/internal/store"
+	"github.com/bluegopher/alice-skill/internal/store/mock"
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

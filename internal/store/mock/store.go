@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	store "github.com/eugegm01-dev/alice-skill/internal/store"
+	store "github.com/bluegopher/alice-skill/internal/store"
 	gomock "go.uber.org/mock/gomock"
 )
 
