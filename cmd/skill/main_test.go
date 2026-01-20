@@ -33,6 +33,11 @@ func TestWebhook(t *testing.T) {
 		ListMessages(gomock.Any(), gomock.Any()).
 		Return(messages, nil)
 
+	s.EXPECT().
+		RegisterUser(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
+
 	appInstance := newApp(s)
 
 	handler := http.HandlerFunc(appInstance.webhook)
@@ -124,6 +129,12 @@ func TestGzipCompression(t *testing.T) {
 		ListMessages(gomock.Any(), gomock.Any()).
 		Return(messages, nil).
 		Times(2)
+
+	// Добавьте это
+	s.EXPECT().
+		RegisterUser(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).
+		AnyTimes()
 
 	appInstance := newApp(s)
 

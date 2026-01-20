@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -30,6 +31,17 @@ func parseReadCommand(_ string) int {
 	// Простая реализация - возвращаем 1 для первого сообщения
 	// В реальном приложении нужно парсить число из команды
 	return 1
+}
+
+// parseRegisterCommand извлекает имя пользователя из команды регистрации
+func parseRegisterCommand(command string) string {
+	parts := strings.Fields(command)
+	if len(parts) < 2 {
+		return ""
+	}
+	// Формат: "Зарегистрируй <username>"
+	// Возвращаем все оставшиеся части как имя пользователя
+	return strings.Join(parts[1:], " ")
 }
 
 func (a *app) webhook(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +100,7 @@ func (a *app) webhook(w http.ResponseWriter, r *http.Request) {
 		// Оповестим отправителя об успешности операции
 		text = "Сообщение успешно отправлено"
 
-	// пользователь попросил прочитать сообщение
+		// пользователь попросил прочитать сообщение
 	case strings.HasPrefix(req.Request.Command, "Прочитай"):
 		// гипотетическая функция parseReadCommand вычленит из запроса порядковый номер сообщения в списке доступных
 		messageIndex := parseReadCommand(req.Request.Command)
@@ -117,6 +129,27 @@ func (a *app) webhook(w http.ResponseWriter, r *http.Request) {
 
 			// передадим текст сообщения в ответе
 			text = fmt.Sprintf("Сообщение от %s, отправлено %s: %s", message.Sender, message.Time, message.Payload)
+		}
+		// пользователь хочет зарегистрироваться
+	case strings.HasPrefix(req.Request.Command, "Зарегистрируй"):
+		// гипотетическая функция parseRegisterCommand вычленит из запроса
+		// желаемое имя нового пользователя
+		username := parseRegisterCommand(req.Request.Command)
+
+		// регистрируем пользователя
+		err := a.store.RegisterUser(ctx, req.Session.User.UserID, username)
+		// наличие неспецифичной ошибки
+		if err != nil && !errors.Is(err, store.ErrConflict) {
+			logger.Log.Debug("cannot register user", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// определяем правильное ответное сообщение пользователю
+		text = fmt.Sprintf("Вы успешно зарегистрированы под именем %s", username)
+		if errors.Is(err, store.ErrConflict) {
+			// ошибка специфична для случая конфликта имён пользователей
+			text = "Извините, такое имя уже занято. Попробуйте другое."
 		}
 
 	// если не поняли команду, просто скажем пользователю, сколько у него новых сообщений
@@ -152,7 +185,7 @@ func (a *app) webhook(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// заполним модель ответа
+	// заполняем модель ответа
 	resp := models.Response{
 		Response: models.ResponsePayload{
 			Text: text, // Алиса проговорит текст
