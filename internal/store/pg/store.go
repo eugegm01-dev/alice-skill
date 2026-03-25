@@ -1,3 +1,4 @@
+// Package pg реализует хранилище сообщений на основе PostgreSQL.
 package pg
 
 import (
@@ -11,18 +12,18 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// Store реализует интерфейс store.MessageStore и позволяет взаимодействовать с СУБД PostgreSQL
+// Store реализует интерфейс store.MessageStore для PostgreSQL.
 type Store struct {
 	// Поле conn содержит объект соединения с СУБД
 	conn *sql.DB
 }
 
-// NewStore возвращает новый экземпляр PostgreSQL-хранилища
+// NewStore возвращает новый экземпляр PostgreSQL-хранилища.
 func NewStore(conn *sql.DB) *Store {
 	return &Store{conn: conn}
 }
 
-// Bootstrap подготавливает БД к работе, создавая необходимые таблицы и индексы
+// Bootstrap подготавливает БД к работе, создавая необходимые таблицы и индексы.
 func (s *Store) Bootstrap(ctx context.Context) error {
 	// запускаем транзакцию
 	tx, err := s.conn.BeginTx(ctx, nil)
@@ -59,6 +60,7 @@ func (s *Store) Bootstrap(ctx context.Context) error {
 	return tx.Commit()
 }
 
+// FindRecipient возвращает внутренний идентификатор пользователя по его имени.
 func (s *Store) FindRecipient(ctx context.Context, username string) (userID string, err error) {
 	// запрашиваем внутренний идентификатор пользователя по его имени
 	row := s.conn.QueryRowContext(ctx, `SELECT id FROM users WHERE username = $1`, username)
@@ -66,6 +68,7 @@ func (s *Store) FindRecipient(ctx context.Context, username string) (userID stri
 	return
 }
 
+// ListMessages возвращает список сообщений для указанного пользователя (без текста).
 func (s *Store) ListMessages(ctx context.Context, userID string) ([]store.Message, error) {
 	// запрашиваем данные обо всех сообщениях пользователя, без самого текста
 	rows, err := s.conn.QueryContext(ctx, `
@@ -103,6 +106,7 @@ func (s *Store) ListMessages(ctx context.Context, userID string) ([]store.Messag
 	return messages, nil
 }
 
+// GetMessage возвращает полное сообщение по идентификатору.
 func (s *Store) GetMessage(ctx context.Context, id int64) (*store.Message, error) {
 	// запрашиваем сообщение по внутреннему идентификатору
 	row := s.conn.QueryRowContext(ctx, `
@@ -128,6 +132,7 @@ func (s *Store) GetMessage(ctx context.Context, id int64) (*store.Message, error
 	return &msg, nil
 }
 
+// SaveMessage сохраняет новое сообщение для получателя.
 func (s *Store) SaveMessage(ctx context.Context, userID string, msg store.Message) error {
 	// добавляем новое сообщение в БД
 	_, err := s.conn.ExecContext(ctx, `
@@ -139,6 +144,8 @@ func (s *Store) SaveMessage(ctx context.Context, userID string, msg store.Messag
 
 	return err
 }
+
+// RegisterUser регистрирует нового пользователя.
 func (s *Store) RegisterUser(ctx context.Context, userID, username string) error {
 	// добавляем новую запись пользователя
 	_, err := s.conn.ExecContext(ctx, `

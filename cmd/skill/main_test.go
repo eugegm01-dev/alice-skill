@@ -38,7 +38,7 @@ func TestWebhook(t *testing.T) {
 		Return(nil).
 		AnyTimes()
 
-	appInstance := newApp(s)
+appInstance := NewApp(s)
 
 	handler := http.HandlerFunc(appInstance.webhook)
 	srv := httptest.NewServer(handler)
@@ -136,8 +136,7 @@ func TestGzipCompression(t *testing.T) {
 		Return(nil).
 		AnyTimes()
 
-	appInstance := newApp(s)
-
+appInstance := NewApp(s)
 	handler := http.HandlerFunc(gzipMiddleware(appInstance.webhook))
 
 	srv := httptest.NewServer(handler)

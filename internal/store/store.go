@@ -1,4 +1,4 @@
-// internal/store/store.go
+// Package store предоставляет интерфейс и модели для хранения сообщений.
 package store
 
 //go:generate mockgen -destination=mock/mock.go -package=mock . MessageStore
@@ -9,9 +9,10 @@ import (
 	"time"
 )
 
-// ErrConflict указывает на конфликт данных в хранилище.
+// ErrConflict возвращается при попытке зарегистрировать уже существующее имя пользователя.
 var ErrConflict = errors.New("data conflict")
 
+// MessageStore определяет контракт хранилища сообщений и пользователей.
 type MessageStore interface {
 	FindRecipient(ctx context.Context, username string) (userID string, err error)
 	ListMessages(ctx context.Context, userID string) ([]Message, error)
@@ -21,7 +22,7 @@ type MessageStore interface {
 	RegisterUser(ctx context.Context, userID, username string) error
 }
 
-// Message представляет сообщение в системе
+// Message представляет сообщение в системе.
 type Message struct {
 	ID      int64     `json:"id"`
 	Sender  string    `json:"sender"`

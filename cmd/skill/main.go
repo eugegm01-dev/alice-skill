@@ -30,8 +30,7 @@ func run() error {
 	}
 
 	// создаём экземпляр приложения, передавая реализацию хранилища pg в качестве внешней зависимости
-	appInstance := newApp(pg.NewStore(conn))
-
+appInstance := NewApp(pg.NewStore(conn))
 	logger.Log.Info("Running server", zap.String("address", flagRunAddr))
 	// обернём хендлер webhook в middleware с логированием и поддержкой gzip
 	return http.ListenAndServe(flagRunAddr, logger.RequestLogger(gzipMiddleware(appInstance.webhook)))
